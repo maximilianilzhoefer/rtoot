@@ -112,11 +112,14 @@ process_request <- function(token = NULL,
                             retryonratelimit = TRUE,
                             verbose = TRUE
 ) {
-  # if since_id is provided we page forward, otherwise we page backwards
+  # if since_id or min_id is provided we page forward, otherwise we page backwards
   if(!is.null(params[["since_id"]])) {
     pager <- "since_id"
+    pager_response <- "min_id"
+  } else if(!is.null(params[["min_id"]])) {
+    pager <- pager_response <- "min_id"
   } else {
-    pager <- "max_id"
+    pager <- pager_response <- "max_id"
   }
   pages <- ceiling(n/page_size)
   output <- vector("list")
@@ -127,10 +130,10 @@ process_request <- function(token = NULL,
     output <- c(output, api_response)
     attr(output, "headers") <- attr(api_response, "headers")
     if (break_process_request(api_response = api_response, retryonratelimit = retryonratelimit,
-                              verbose = verbose, pager = pager)) {
+                              verbose = verbose, pager = pager_response)) {
       break
     }
-    params[[pager]] <- attr(api_response, "headers")[[pager]]
+    params[[pager]] <- attr(api_response, "headers")[[pager_response]]
   }
   if (isTRUE(parse)) {
     header <- attr(output, "headers")
